@@ -24,12 +24,20 @@ Fixpoint length {X : Type} (l : @list X) : nat :=
   | cons _ l' => S (length l')
   end.
 
+
+
 Notation "x :: y" := (cons x y)
                      (at level 60, right associativity).
 Notation "[ ]" := nil.
 Notation "[ x ; .. ; y ]" := (cons x .. (cons y []) ..).
 Notation "x ++ y" := (app x y)
                      (at level 60, right associativity).
+
+Fixpoint map {X Y: Type} (f:X -> Y) (l:@list X) : (@list Y) :=
+  match l with
+  | nil => nil
+  | h :: t => (f h) :: (map f t)
+  end.
 (*######################################################*)
 
 
@@ -231,9 +239,13 @@ Definition functId {X Y: Type} (cat: @category X Y): functor :=
 
 (*Definicion de pareja*)
 Inductive prod {X Y: Type} : Type :=
-|pair (p1: X) (p2: Y).  
+|pair (p1: X) (p2: Y).
+
+Inductive triple {X Y Z: Type} : Type :=
+|trip (p1: X) (p2: Y) (p2: Z).  
 
 Notation "( x , y )" := (pair x y).
+Notation "( x , y , z )" := (trip x y z).
 
 
 (*definicion de producto cartesiano en conjuntos finitos*)
@@ -274,8 +286,74 @@ Definition functAtoAXA {X: Type} := func (@FinSetCat X)
                                   (fun f => prodArrow f f)
                                   (@FinSetCat (@prod X X)).
 
+(*Definicion de objeto inicial en una categoria*)
 
+Inductive initialObj {X Y: Type} :=
+  |ini (object: X) (function: X -> Y).
 
+(*funcion vacia f:empty -> a*)
+
+Definition emptyFunction {X: Type} (x: @option X) := @None X.
+
+Check emptyFunction.
+
+(*objeto inicial en FinSet *)
+
+Definition finSetInitial {X: Type} := ini (finEmptySet) 
+         (fun a => setArr (finEmptySet) (@emptyFunction X) (a)).
+
+Check finSetInitial. 
+
+(*Definicion de coproductos*)
+Definition coproductCoCone {X Y: Type}: Type := (X * Y * Y) * 
+                                                (X * Y * Y -> Y).
+
+Definition coproduct {X Y: Type}: Type :=  (X * X) -> 
+                                            @coproductCoCone X Y.
+
+(*Definicion de coproducto en FinSet donde a+b es una union disjunta*)
+
+(*Definicion de etiquetas para un conjunto u otro*)
+
+Inductive Tag {X: Type} : Type :=
+  |just (x: X)
+  |setA (x: @Tag X)
+  |setB (x: @Tag X).
+
+Check setA.
+
+(*definicion de union disjunta*)
+
+Definition disjointU {X: Type} (a b: @finSet (@Tag X)) := 
+                                  app (map setA a) (map setB b).
+
+Compute disjointU [just 1; just 2; just 3] [just 1; just 2; just 3].
+
+(*funcion [f,g] de la forma [f,g]: a+b -> c *)  
+
+Definition fg {X: Type} (f g: @Tag X -> @Tag X) (tag: @Tag X): @Tag X  :=
+  match tag with
+  |setA x => f (x)
+  |setB x => g (x)
+  |just x => tag
+  end.
+
+(*flecha entre a+b y c*)
+
+Definition univ {X: Type} (a b c: @finSet (@Tag X)) (s1 s2: @finSetArrow (@Tag X)) :=
+  match s1, s2 with
+  |setArr _ f _ , setArr _ g _ => setArr (disjointU a b) (fg f g) (c)
+  end.
+
+Check univ.      
+
+(*coproducto final en finSet*)
+
+Definition finSetCoProduct {X: Type} (a b: @finSet (@Tag X)) := 
+pair ( trip (disjointU a b) (setArr a setA (disjointU a b)) (setArr b setB (disjointU a b)) )
+     (univ a b).
+
+Check finSetCoProduct.  
 
 
 
