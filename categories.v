@@ -113,6 +113,7 @@ Definition finSetComposition {X: Type} (a1: @finSetArrow X) (a2: @finSetArrow X)
                                                   Some (setArr (a) (fun x => g (f (x))) (d) ) else None
   end.
 
+Check finSetComposition.
 (*esta funcion maneja el error de la composicion de funciones, en el caso de que los dos conjuntos no sean 
 iguales. Si no lo son, se retorna una flecha finSetArrow donde el conjunto de llegada y salida son vacios
 y la funcion que los une es una funcion que retorna el valor que se le da como parametro*)
@@ -150,7 +151,7 @@ Definition FinSetCat {X: Type} := (@finSetSource X, @finSetTarget X, @finSetIden
 
 (*-----------------------------------------------------------------------*)
 
-(*Definicion de una categoria infinita:*)
+(*Definicion de una categoria finita:*)
 
 (*objetos*)
 Inductive objects: Type := 
